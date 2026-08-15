@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ data: { ok: true } });
 });
 
 app.use('/api/recipes', recipeRoutes);
