@@ -23,12 +23,28 @@ export default function Recipes() {
   }, []);
 
   return (
-    <div>
-      <h1>Recipes Page</h1>
-      {error && <p>Fetch failed. Is the backend running? ({error})</p>}
-      {recipes.map((recipe) => (
-        <RecipeCard key={recipe._id} recipe={recipe} />
-      ))}
+    <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-burnt-orange md:text-xs">
+        Fresh from the kitchen
+      </p>
+      <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-navy md:text-4xl">
+        Recipes worth cooking tonight
+      </h1>
+      <p className="mt-3 max-w-xl leading-relaxed text-navy/70">
+        A few fast, friendly dishes to get you started.
+      </p>
+
+      {error && (
+        <p className="mt-8 rounded-2xl border border-burnt-orange/25 bg-gold-light px-4 py-3 text-sm text-navy">
+          Couldn&apos;t load recipes. Check that the server is running, then refresh.
+        </p>
+      )}
+
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {recipes.map((recipe) => (
+          <RecipeCard key={recipe._id} recipe={recipe} />
+        ))}
+      </div>
     </div>
   );
 }

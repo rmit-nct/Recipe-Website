@@ -1,10 +1,23 @@
-// RecipeCard.jsx
-// Phase 1 — Frontend Feature Dev
-// Static visual component only. Renders whatever Recipe-shaped object is
-// passed in via props; wiring to the live API comes in a later phase (NR4).
+import NeoRibbon from '../../components/NeoRibbon.jsx';
 
-import './RecipeCard.css';
+/**
+ * @typedef {Object} Recipe — mirrors docs/DATA_SHAPES.md
+ * @property {string} _id
+ * @property {string} title
+ * @property {string} description
+ * @property {'food'|'bakery'} category
+ * @property {string} imageUrl
+ * @property {number} prepTimeMinutes
+ * @property {number} servings
+ * @property {number} averageRating
+ * @property {number} ratingCount
+ */
 
+/**
+ * Presentational recipe card. Colors and type come from docs/DESIGN_SYSTEM.md
+ * tokens only — navy text on light surfaces, gold reserved for surfaces.
+ * @param {{ recipe: Recipe }} props
+ */
 export default function RecipeCard({ recipe }) {
   const {
     title,
@@ -18,48 +31,50 @@ export default function RecipeCard({ recipe }) {
   } = recipe;
 
   return (
-    <div className="recipe-card w-full max-w-full sm:max-w-sm md:max-w-md lg:max-w-sm mx-auto p-4 md:p-5">
-      <span className="recipe-card__eyebrow block text-[11px] md:text-xs">
-        {category}
-      </span>
-
-      <div className="recipe-card__photo">
+    <article className="group flex flex-col rounded-3xl border border-navy/10 bg-cream-base p-3 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-gold hover:shadow-lg focus-within:border-gold md:p-4">
+      <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-gold-light">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={title}
-            className="recipe-card__photo-img"
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
+              e.currentTarget.remove();
             }}
           />
-        ) : (
-          <div className="recipe-card__photo-placeholder">
-            <span>photo</span>
-          </div>
-        )}
-        <span className="recipe-card__corner recipe-card__corner--tl" />
-        <span className="recipe-card__corner recipe-card__corner--tr" />
-        <span className="recipe-card__corner recipe-card__corner--bl" />
-        <span className="recipe-card__corner recipe-card__corner--br" />
+        ) : null}
+
+        {/* Fallback sits behind the image, so a broken URL reveals the brand
+            mark instead of a torn-image icon. */}
+        <div className="absolute inset-0 -z-10 flex items-center justify-center text-navy">
+          <NeoRibbon className="h-10 w-10 opacity-40" />
+        </div>
+
+        <span className="absolute left-3 top-3 rounded-full bg-gold px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-navy md:text-[11px]">
+          {category}
+        </span>
       </div>
 
-      <div className="recipe-card__body pt-3 md:pt-4">
-        <h3 className="recipe-card__title text-lg md:text-xl">{title}</h3>
-        <p className="recipe-card__desc text-[13px] md:text-[13.5px]">{description}</p>
+      <div className="flex flex-1 flex-col px-1 pt-4 md:pt-5">
+        <h3 className="font-display text-lg font-semibold leading-snug text-navy md:text-xl">
+          {title}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-navy/70">
+          {description}
+        </p>
 
-        <div className="recipe-card__divider" />
-
-        <div className="recipe-card__footer">
-          <span className="recipe-card__meta text-xs">
-            {prepTimeMinutes} min · Serves {servings}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pt-1">
+          <span className="rounded-full bg-cream-alt px-3 py-1.5 font-mono text-[11px] text-navy">
+            {prepTimeMinutes} min · serves {servings}
           </span>
-          <span className="recipe-card__rating text-xs">
-            <span className="recipe-card__rating-dot" />
-            {averageRating} ({ratingCount})
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-light px-3 py-1.5 font-mono text-[11px] text-navy">
+            <span className="h-1.5 w-1.5 rounded-full bg-burnt-orange" />
+            {averageRating}
+            <span className="text-navy/55">({ratingCount})</span>
           </span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
