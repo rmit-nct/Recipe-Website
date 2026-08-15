@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import recipeRoutes from './routes/recipe.routes.js';
 
 const app = express();
 
@@ -14,7 +15,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ data: { ok: true } });
 });
+
+app.use('/api/recipes', recipeRoutes);
 
 export default app;
