@@ -3,3 +3,32 @@
 GET {{baseUrl}}/api/health
 
 GET {{baseUrl}}/api/recipes
+### --- AUTHENTICATION TESTS ---
+
+### 1. Register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@neorecipe.com",
+  "password": "securepassword123"
+}
+
+### 2. Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@neorecipe.com",
+  "password": "securepassword123"
+}
+
+### 3. Get Me
+GET {{baseUrl}}/api/auth/me
+
+### 4. Logout
+POST {{baseUrl}}/api/auth/logout
+
+### 5. Fetch Recipes after Logout (Should fail with 401 UNAUTHENTICATED)
+GET {{baseUrl}}/api/recipes
