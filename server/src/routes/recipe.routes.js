@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { getRecipes } from '../controllers/recipe.controller.js';
+import { requireAuth } from '../middleware/auth.middleware.js'; // 1. Import middleware
 
 const router = Router();
 
-// TODO(auth): API_CONTRACT.md requires a valid session on this route.
-// No auth system exists yet — tracked for a later sprint, not NR1.
-router.get('/', getRecipes);
+// 2. Add requireAuth to role-gate the route
+router.get('/', requireAuth, getRecipes);
 
 export default router;
