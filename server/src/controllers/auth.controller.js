@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const registerSchema = z.object({
   username: z.string().min(3),
