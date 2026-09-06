@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Recipes from './pages/Recipes';
 import logo from './assets/logo.png';
@@ -14,32 +16,36 @@ const navLinkClass = ({ isActive }) =>
 export default function App() {
   return (
     <BrowserRouter>
-      <header className="bg-navy">
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4">
-          <span className="flex items-center gap-2.5 text-cream-base">
-            <img src={logo} alt="" className="h-9 w-9 object-contain" />
-            <span className="font-display text-lg font-semibold text-cream-base">
-              Neo Recipe
+      <AuthProvider>
+        <header className="bg-navy">
+          <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4">
+            <span className="flex items-center gap-2.5 text-cream-base">
+              <img src={logo} alt="" className="h-9 w-9 object-contain" />
+              <span className="font-display text-lg font-semibold text-cream-base">
+                Neo Recipe
+              </span>
             </span>
-          </span>
 
-          <div className="flex items-center gap-1">
-            <NavLink to="/" className={navLinkClass} end>
-              Home
-            </NavLink>
-            <NavLink to="/recipes" className={navLinkClass}>
-              Recipes
-            </NavLink>
-          </div>
-        </nav>
-      </header>
+            <div className="flex items-center gap-1">
+              <NavLink to="/" className={navLinkClass} end>
+                Home
+              </NavLink>
+              <NavLink to="/recipes" className={navLinkClass}>
+                Recipes
+              </NavLink>
+            </div>
+          </nav>
+        </header>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/recipes" element={<Recipes />} />
-        </Routes>
-      </main>
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/recipes" element={<Recipes />} />
+            </Route>
+          </Routes>
+        </main>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
