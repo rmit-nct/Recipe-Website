@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Recipes from './pages/Recipes';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import logo from './assets/logo.png';
 
 const navLinkClass = ({ isActive }) =>
@@ -40,6 +42,8 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/recipes" element={<Recipes />} />
             </Route>
