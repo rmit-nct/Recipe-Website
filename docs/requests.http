@@ -1,9 +1,12 @@
 @baseUrl = http://localhost:5000
 
+### Health check
 GET {{baseUrl}}/api/health
 
+### Role-gate check — no session cookie, expect 401 UNAUTHENTICATED
 GET {{baseUrl}}/api/recipes
-### --- AUTHENTICATION TESTS ---
+
+### Auth
 
 ### 1. Register
 POST {{baseUrl}}/api/auth/register
@@ -30,5 +33,5 @@ GET {{baseUrl}}/api/auth/me
 ### 4. Logout
 POST {{baseUrl}}/api/auth/logout
 
-### 5. Fetch Recipes after Logout (Should fail with 401 UNAUTHENTICATED)
+### 5. Fetch Recipes after Logout (role-gate check — expect 401 UNAUTHENTICATED)
 GET {{baseUrl}}/api/recipes
