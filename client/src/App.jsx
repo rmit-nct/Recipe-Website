@@ -5,6 +5,9 @@ import Home from './pages/Home';
 import Recipes from './pages/Recipes';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import CreateRecipePage from './pages/CreateRecipePage';
+import EditRecipePage from './pages/EditRecipePage';
+import RecipeDetailPage from './pages/RecipeDetailPage';
 import logo from './assets/logo.png';
 
 const navLinkClass = ({ isActive }) =>
@@ -46,6 +49,9 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/recipes" element={<Recipes />} />
+              <Route path="/recipes/new" element={<CreateRecipePage />} />
+              <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+              <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
             </Route>
           </Routes>
         </main>
