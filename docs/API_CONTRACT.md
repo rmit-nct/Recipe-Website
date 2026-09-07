@@ -50,9 +50,9 @@ Guests get the public landing page and nothing else. Every `GET` or mutation und
 | GET | `/api/auth/me` | Session | — | `{ data: { user } }` |
 | GET | `/api/recipes` | Session | Query: `?search=&category=&sort=top\|new` | `{ data: { recipes: [...] } }` |
 | GET | `/api/recipes/:id` | Session | — | `{ data: { recipe } }` |
-| POST | `/api/recipes` | Session | multipart: recipe fields + image file | `{ data: { recipe } }` |
-| POST | `/api/uploads` | Session | multipart: image file | `{ data: { url } }` |
-| PUT | `/api/recipes/:id` | Session, owner only | recipe fields to update | `{ data: { recipe } }` |
+| POST | `/api/recipes` | Session | multipart: recipe fields + `image` file — see § File Uploads | `{ data: { recipe } }` |
+| POST | `/api/uploads` | Session | multipart: a single `image` file | `{ data: { url } }` — 201 |
+| PUT | `/api/recipes/:id` | Session, owner only | JSON (not multipart): any subset of recipe fields, incl. `imageUrl` | `{ data: { recipe } }` |
 | DELETE | `/api/recipes/:id` | Session, owner only | — | `204 No Content` |
 | GET | `/api/recipes/:id/comments` | Session | — | `{ data: { comments: [...] } }` |
 | POST | `/api/recipes/:id/comments` | Session | `{ body }` | `{ data: { comment } }` |
@@ -70,6 +70,42 @@ if (recipe.author.toString() !== req.user.id) {
 ```
 
 Missing this check is a security bug, not a style nit — `requireAuth` passing is not sufficient justification to proceed with a mutation on someone else's resource.
+
+## File Uploads
+
+Storage is Cloudinary (handbook D6) — nothing is written to local disk, because free-tier
+deploys have ephemeral filesystems and a saved file would not survive a restart. Server
+credentials come from `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET`.
+
+**The multipart file field is named `image`** on both `POST /api/uploads` and
+`POST /api/recipes`. Limits: images only (`image/*`), 5 MB maximum. A rejected upload
+returns `400 VALIDATION_ERROR` in the standard envelope — never a bare Express error page.
+
+`POST /api/recipes` takes the image file **directly**; it does not expect an `imageUrl`
+produced by a prior `/api/uploads` call. The two are independent entry points, not a
+two-step flow. On create, `imageUrl` is set by the server from the Cloudinary response and
+is **ignored if sent by the client**. `PUT /api/recipes/:id` is JSON and does accept an
+`imageUrl` string, so replacing an image is: `POST /api/uploads` → `PUT` the returned URL.
+
+### Encoding array fields over multipart
+
+Multipart form data carries flat strings only, so the two array fields on `Recipe` are sent
+as **JSON strings in a single field each**:
+
+```js
+form.append('ingredients', JSON.stringify([{ name: 'Garlic', quantity: '4 cloves' }]));
+form.append('steps', JSON.stringify(['Boil the pasta.', 'Fry the garlic.']));
+```
+
+Repeated fields (`steps=a&steps=b`) and bracket-indexed keys (`ingredients[0][name]`) are
+**not** supported — bracket parsing is not consistent across body parsers. Both arrays must
+be non-empty. Numeric fields (`prepTimeMinutes`, `servings`) arrive as strings and are
+coerced server-side; over `PUT` (JSON) they must be real numbers.
+
+`author`, `averageRating`, and `ratingCount` are never accepted from the client on either
+create or update. `author` is set from the session; the two rating fields are maintained by
+`PUT /api/recipes/:id/rating`.
 
 ## Pagination
 

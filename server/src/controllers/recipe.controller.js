@@ -1,82 +1,200 @@
-// Hardcoded fake recipes to prove the request path works before
-// wiring up the database. Replace with real DB queries later.
-// Shape mirrors the Recipe @typedef in docs/DATA_SHAPES.md.
-const fakeRecipes = [
-  {
-    _id: '1',
-    title: 'Creamy Garlic Parmesan Pasta',
-    description: 'A quick and comforting one-pot pasta tossed in a rich garlic parmesan sauce.',
-    category: 'food',
-    imageUrl: 'https://example.com/images/garlic-pasta.jpg',
-    prepTimeMinutes: 10,
-    servings: 4,
-    ingredients: [
-      { name: 'Spaghetti', quantity: '200 g' },
-      { name: 'Garlic', quantity: '4 cloves' },
-      { name: 'Parmesan cheese', quantity: '50 g' },
-    ],
-    steps: [
-      'Cook the spaghetti according to package instructions.',
-      'Sauté minced garlic in butter until fragrant.',
-      'Toss the pasta with the garlic butter and parmesan.',
-    ],
-    author: { _id: 'seed-user-1', username: 'seedchef' },
-    averageRating: 4.5,
-    ratingCount: 2,
-    createdAt: '2026-01-05T09:00:00.000Z',
-    updatedAt: '2026-01-05T09:00:00.000Z',
-  },
-  {
-    _id: '2',
-    title: 'Fluffy Banana Pancakes',
-    description: 'Light and fluffy pancakes made with ripe bananas and a hint of cinnamon.',
-    category: 'bakery',
-    imageUrl: 'https://example.com/images/banana-pancakes.jpg',
-    prepTimeMinutes: 5,
-    servings: 2,
-    ingredients: [
-      { name: 'Ripe bananas', quantity: '2' },
-      { name: 'Flour', quantity: '150 g' },
-      { name: 'Cinnamon', quantity: '1 tsp' },
-    ],
-    steps: [
-      'Mash the bananas and mix with the wet ingredients.',
-      'Fold in the flour and cinnamon.',
-      'Cook spoonfuls of batter on a hot griddle until golden.',
-    ],
-    author: { _id: 'seed-user-2', username: 'pancakepro' },
-    averageRating: 4.8,
-    ratingCount: 5,
-    createdAt: '2026-01-06T09:00:00.000Z',
-    updatedAt: '2026-01-06T09:00:00.000Z',
-  },
-  {
-    _id: '3',
-    title: 'Hearty Vegetable Stir-Fry',
-    description: 'A colorful medley of fresh vegetables stir-fried in a savory soy-ginger sauce.',
-    category: 'food',
-    imageUrl: 'https://example.com/images/veg-stirfry.jpg',
-    prepTimeMinutes: 15,
-    servings: 3,
-    ingredients: [
-      { name: 'Broccoli', quantity: '150 g' },
-      { name: 'Bell pepper', quantity: '1' },
-      { name: 'Soy sauce', quantity: '2 tbsp' },
-      { name: 'Ginger', quantity: '1 tbsp' },
-    ],
-    steps: [
-      'Chop all vegetables into bite-sized pieces.',
-      'Stir-fry vegetables over high heat for 3-4 minutes.',
-      'Add the soy-ginger sauce and toss until coated.',
-    ],
-    author: { _id: 'seed-user-1', username: 'seedchef' },
-    averageRating: 4.2,
-    ratingCount: 3,
-    createdAt: '2026-01-07T09:00:00.000Z',
-    updatedAt: '2026-01-07T09:00:00.000Z',
-  },
-];
+import mongoose from 'mongoose';
+import Recipe from '../models/Recipe.js';
+import { uploadImageBuffer } from '../config/cloudinary.js';
 
-export const getRecipes = (req, res) => {
-  res.json({ data: { recipes: fakeRecipes } });
+// User-supplied `?search=` goes into a regex, so escape anything the regex
+// engine would otherwise treat as syntax.
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const SORT_ORDERS = {
+  // Highest rated first; ratingCount breaks ties so a single 5-star recipe
+  // doesn't outrank a well-reviewed one.
+  top: { averageRating: -1, ratingCount: -1, createdAt: -1 },
+  new: { createdAt: -1 },
+};
+
+/**
+ * GET /api/recipes — session required (role gate, docs/API_CONTRACT.md).
+ * Query: ?search=&category=&sort=top|new — all optional.
+ * @returns {{ data: { recipes: Recipe[] } }}
+ */
+export const getRecipes = async (req, res) => {
+  try {
+    const { search, category, sort } = req.validated;
+
+    const filter = {};
+
+    if (search) {
+      const pattern = new RegExp(escapeRegex(search), 'i');
+      // Matches the recipe title OR any one of its ingredients' names.
+      filter.$or = [{ title: pattern }, { 'ingredients.name': pattern }];
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const recipes = await Recipe.find(filter)
+      .sort(SORT_ORDERS[sort] || SORT_ORDERS.new)
+      .populate('author', 'username');
+
+    return res.status(200).json({
+      data: { recipes: recipes.map((recipe) => recipe.toPublicObject()) },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: { code: 'INTERNAL_ERROR', message: 'Internal server error' },
+    });
+  }
+};
+
+const notFound = (res) =>
+  res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Recipe not found' } });
+
+const internalError = (res) =>
+  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
+
+/**
+ * Loads a recipe for an owner-scoped mutation.
+ * Returns the document, or null once it has already sent the 404/403 response.
+ *
+ * requireAuth proved *someone* is logged in; it says nothing about whose recipe
+ * this is. 401 = "who are you?", 403 = "I know you, and no." (API_CONTRACT.md).
+ */
+const loadOwnedRecipe = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    notFound(res);
+    return null;
+  }
+
+  const recipe = await Recipe.findById(id);
+  if (!recipe) {
+    notFound(res);
+    return null;
+  }
+
+  if (recipe.author.toString() !== req.user.id) {
+    res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Not the owner' } });
+    return null;
+  }
+
+  return recipe;
+};
+
+/**
+ * POST /api/uploads — session required. Multipart: a single `image` file.
+ * @returns {{ data: { url: string } }}
+ */
+export const uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'An image file is required' },
+      });
+    }
+
+    const url = await uploadImageBuffer(req.file.buffer);
+
+    return res.status(201).json({ data: { url } });
+  } catch (err) {
+    return internalError(res);
+  }
+};
+
+/**
+ * GET /api/recipes/:id — session required (role gate).
+ * @returns {{ data: { recipe: Recipe } }}
+ */
+export const getRecipeById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return notFound(res);
+    }
+
+    const recipe = await Recipe.findById(id).populate('author', 'username');
+    if (!recipe) {
+      return notFound(res);
+    }
+
+    return res.status(200).json({ data: { recipe: recipe.toPublicObject() } });
+  } catch (err) {
+    return internalError(res);
+  }
+};
+
+/**
+ * POST /api/recipes — session required.
+ * Multipart: recipe fields + an `image` file (docs/API_CONTRACT.md).
+ * @returns {{ data: { recipe: Recipe } }}
+ */
+export const createRecipe = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'An image file is required' },
+      });
+    }
+
+    // Zod has already run, so we only reach Cloudinary with a valid payload —
+    // no orphaned uploads from requests that were going to 400 anyway.
+    const imageUrl = await uploadImageBuffer(req.file.buffer);
+
+    // author comes from the verified JWT, never from the request body — the
+    // browser controls req.body and can lie about it (CLAUDE.md §9).
+    const recipe = await Recipe.create({
+      ...req.validated,
+      imageUrl,
+      author: req.user.id,
+    });
+
+    await recipe.populate('author', 'username');
+
+    return res.status(201).json({ data: { recipe: recipe.toPublicObject() } });
+  } catch (err) {
+    return internalError(res);
+  }
+};
+
+/**
+ * PUT /api/recipes/:id — session required, owner only.
+ * @returns {{ data: { recipe: Recipe } }}
+ */
+export const updateRecipe = async (req, res) => {
+  try {
+    const recipe = await loadOwnedRecipe(req, res);
+    if (!recipe) return undefined;
+
+    // Only the fields the validator allows are assigned. author, averageRating
+    // and ratingCount are absent from updateRecipeSchema, so a client cannot
+    // reassign ownership or inflate its own rating through this endpoint.
+    Object.assign(recipe, req.validated);
+    await recipe.save();
+
+    await recipe.populate('author', 'username');
+
+    return res.status(200).json({ data: { recipe: recipe.toPublicObject() } });
+  } catch (err) {
+    return internalError(res);
+  }
+};
+
+/**
+ * DELETE /api/recipes/:id — session required, owner only.
+ * @returns 204 No Content
+ */
+export const deleteRecipe = async (req, res) => {
+  try {
+    const recipe = await loadOwnedRecipe(req, res);
+    if (!recipe) return undefined;
+
+    await recipe.deleteOne();
+
+    return res.status(204).send();
+  } catch (err) {
+    return internalError(res);
+  }
 };

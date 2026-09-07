@@ -3,6 +3,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import recipeRoutes from './routes/recipe.routes.js';
 import authRoutes from './routes/auth.routes.js'; // 1. Import auth routes
+import commentRoutes from './routes/comment.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 
 const app = express();
 
@@ -21,5 +23,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes); // 2. Mount auth routes BEFORE recipes
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 export default app;

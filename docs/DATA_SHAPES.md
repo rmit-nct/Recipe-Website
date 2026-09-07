@@ -66,6 +66,36 @@ There is no TypeScript in this project. These shapes are documented by conventio
  */
 ```
 
+### Rating
+
+```js
+/**
+ * @typedef {Object} Rating
+ * @property {string} _id
+ * @property {string} recipeId
+ * @property {{_id: string, username: string}} author
+ * @property {number} value       // integer 1..5
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ */
+```
+
+> A `Rating` is unique per `(recipeId, author)` pair, enforced by a unique index on the
+> model — not just by a controller check. `PUT /api/recipes/:id/rating` replaces the
+> existing row for that pair rather than appending, which is why the endpoint is a `PUT`
+> and not a `POST`.
+>
+> `author` mirrors `Comment.author` rather than introducing a separate `userId` field, so
+> "the user who made this" is named the same way across every shape in this doc.
+>
+> `updatedAt` is present here but not on `Comment`: a rating's whole semantic is
+> replacement, so when it last changed is meaningful. Comments are not editable in this
+> scope.
+>
+> Writing a `Rating` recomputes and persists `averageRating` and `ratingCount` on the
+> parent `Recipe` in the same request. Those two fields are the denormalized read path;
+> this collection is the source of truth they are derived from.
+
 ## Change Process
 
 Changes to any shape require updating this doc in the same PR as the code change.
