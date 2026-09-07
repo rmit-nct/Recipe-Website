@@ -35,3 +35,508 @@ POST {{baseUrl}}/api/auth/logout
 
 ### 5. Fetch Recipes after Logout (role-gate check — expect 401 UNAUTHENTICATED)
 GET {{baseUrl}}/api/recipes
+
+###############################################################################
+# Recipe CRUD — the write path (POST / GET-one / PUT / DELETE + image upload)
+#
+# Run these IN ORDER. The Sprint 3 blocks further down assume a real recipe
+# exists, and this is what creates one.
+#
+# Image uploads need a real file on disk. The `< ./path` syntax below is the
+# REST Client multipart file-reference form — put a small .jpg at
+# docs/fixtures/sample.jpg (not committed) or repoint the path at any local image.
+###############################################################################
+
+@userAEmail = chef-a@neorecipe.com
+@userBEmail = chef-b@neorecipe.com
+@testPassword = securepassword123
+
+### W1. Register user A (skip if already registered — expect 409 in that case)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "chefa",
+  "email": "{{userAEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### W2. Register user B — needed for the 403 ownership checks
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "chefb",
+  "email": "{{userBEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### W3. Log in as user A — sets the session cookie for everything below
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userAEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### W4. Upload an image on its own — expect 201 { data: { url } }
+###     The multipart field name MUST be `image` (API_CONTRACT.md § File Uploads).
+POST {{baseUrl}}/api/uploads
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--NeoRecipeBoundary--
+
+### W5. Upload rejects a non-image — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/uploads
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="image"; filename="notes.txt"
+Content-Type: text/plain
+
+not an image
+--NeoRecipeBoundary--
+
+### W6. CREATE a recipe — multipart: recipe fields + the `image` file.
+###     `ingredients` and `steps` are JSON STRINGS in a single field each.
+###     Expect 201 { data: { recipe } } with author = user A, set from the
+###     session. Copy the returned _id into @newRecipeId below.
+POST {{baseUrl}}/api/recipes
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="title"
+
+Creamy Garlic Parmesan Pasta
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="description"
+
+A quick one-pot pasta tossed in a rich garlic parmesan sauce.
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="category"
+
+food
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="prepTimeMinutes"
+
+10
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="servings"
+
+4
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="ingredients"
+
+[{"name":"Spaghetti","quantity":"200 g"},{"name":"Garlic","quantity":"4 cloves"},{"name":"Parmesan cheese","quantity":"50 g"}]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="steps"
+
+["Cook the spaghetti.","Saute the garlic in butter.","Toss with parmesan."]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--NeoRecipeBoundary--
+
+### W7. AUTHOR CANNOT BE SPOOFED — same as W6 but with an `author` field in the
+###     body. Expect 201, and the returned author is still user A, NOT the id
+###     sent here. Identity comes from the JWT only (CLAUDE.md §9).
+POST {{baseUrl}}/api/recipes
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="title"
+
+Author Spoof Attempt
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="description"
+
+The author field below must be ignored by the server.
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="category"
+
+food
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="prepTimeMinutes"
+
+5
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="servings"
+
+1
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="ingredients"
+
+[{"name":"Salt","quantity":"1 pinch"}]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="steps"
+
+["Do nothing."]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="author"
+
+000000000000000000000000
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--NeoRecipeBoundary--
+
+### W8. Create with a bad category — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/recipes
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="title"
+
+Bad Category
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="description"
+
+Should be rejected.
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="category"
+
+drinks
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="prepTimeMinutes"
+
+5
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="servings"
+
+1
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="ingredients"
+
+[{"name":"Salt","quantity":"1 pinch"}]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="steps"
+
+["Nothing."]
+--NeoRecipeBoundary--
+
+### W9. Create with malformed ingredients JSON — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/recipes
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="title"
+
+Broken Ingredients
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="description"
+
+Should be rejected, not 500.
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="category"
+
+food
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="prepTimeMinutes"
+
+5
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="servings"
+
+1
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="ingredients"
+
+[{broken json
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="steps"
+
+["Nothing."]
+--NeoRecipeBoundary--
+
+### ---- Paste the _id returned by W6 here before continuing ----
+@newRecipeId = PASTE_THE_W6_RECIPE_ID_HERE
+
+### W10. GET one by id — expect 200 { data: { recipe } }, author { _id, username }
+GET {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+### W11. GET a well-formed but nonexistent id — expect 404 NOT_FOUND
+GET {{baseUrl}}/api/recipes/000000000000000000000000
+
+### W12. GET a malformed id — expect 404 NOT_FOUND (not a 500 CastError)
+GET {{baseUrl}}/api/recipes/not-an-objectid
+
+### W13. EDIT own recipe — JSON, not multipart. Partial update. Expect 200.
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "Creamy Garlic Parmesan Pasta (updated)",
+  "servings": 6
+}
+
+### W14. Edit with an empty body — expect 400 VALIDATION_ERROR
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{}
+
+### W15. Rating fields are not client-writable — expect 200, but averageRating
+###      and ratingCount are stripped, not applied. Follow with W10 to confirm
+###      they still hold whatever the rating endpoint set.
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "Rating spoof attempt",
+  "averageRating": 5,
+  "ratingCount": 999
+}
+
+### W16. OWNERSHIP — log in as user B, then run W17/W18. Expect 403, not 401:
+###      user B IS authenticated, just not the author.
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userBEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### W17. Edit a recipe owned by user A, as user B — expect 403 FORBIDDEN
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "user B must not be able to do this"
+}
+
+### W18. Delete a recipe owned by user A, as user B — expect 403 FORBIDDEN
+DELETE {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+### W19. Log back in as user A (the owner) to finish the chain
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userAEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### W20. DELETE own recipe — expect 204 No Content
+DELETE {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+### W21. Confirm it is gone — expect 404 NOT_FOUND
+GET {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+### W22. Role gate — run Logout first, then each of W22-W26 must be 401.
+POST {{baseUrl}}/api/uploads
+
+### W23. Create with no session — expect 401 UNAUTHENTICATED
+POST {{baseUrl}}/api/recipes
+
+### W24. Get one with no session — expect 401 UNAUTHENTICATED
+GET {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+### W25. Edit with no session — expect 401, NOT 403 (identity is unknown)
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "no session"
+}
+
+### W26. Delete with no session — expect 401 UNAUTHENTICATED
+DELETE {{baseUrl}}/api/recipes/{{newRecipeId}}
+
+
+###############################################################################
+# Sprint 3 — Signal + Discovery
+#
+# Ordering matters. Run the Auth block above first to get a session cookie, and
+# set @recipeId below to a real recipe _id from the "List all recipes" call.
+# The two-user rating checks need a SECOND account — register/login as user B
+# where marked, then come back.
+###############################################################################
+
+@recipeId = PASTE_A_REAL_RECIPE_ID_HERE
+@commentId = PASTE_A_REAL_COMMENT_ID_HERE
+
+### Search / Filter / Sort ####################################################
+
+### S1. List all recipes — no params, expect 200 { data: { recipes: [...] } }
+GET {{baseUrl}}/api/recipes
+
+### S2. Search by recipe title — expect only titles matching "pasta"
+GET {{baseUrl}}/api/recipes?search=pasta
+
+### S3. Search by INGREDIENT name — "garlic" is an ingredient, not a title word.
+###     Expect the garlic-containing recipe back. This is the title-OR-ingredient case.
+GET {{baseUrl}}/api/recipes?search=garlic
+
+### S4. Search with a regex metacharacter — must NOT 500.
+###     Expect 200 with an empty or literal-match list, never a server error.
+GET {{baseUrl}}/api/recipes?search=C%2B%2B
+
+### S5. Filter by category=food — expect only category "food"
+GET {{baseUrl}}/api/recipes?category=food
+
+### S6. Filter by category=bakery — expect only category "bakery"
+GET {{baseUrl}}/api/recipes?category=bakery
+
+### S7. Invalid category — expect 400 VALIDATION_ERROR
+GET {{baseUrl}}/api/recipes?category=drinks
+
+### S8. Sort by top — expect descending averageRating
+GET {{baseUrl}}/api/recipes?sort=top
+
+### S9. Sort by new — expect descending createdAt (newest first)
+GET {{baseUrl}}/api/recipes?sort=new
+
+### S10. Invalid sort — expect 400 VALIDATION_ERROR
+GET {{baseUrl}}/api/recipes?sort=oldest
+
+### S11. Combined search + category + sort
+GET {{baseUrl}}/api/recipes?search=a&category=food&sort=top
+
+### Comments ##################################################################
+
+### C1. Create a comment — body field is `body` (DATA_SHAPES.md), expect 201
+###     { data: { comment } } with author { _id, username }.
+###     Copy the returned _id into @commentId above.
+POST {{baseUrl}}/api/recipes/{{recipeId}}/comments
+Content-Type: application/json
+
+{
+  "body": "Made this last night — the garlic butter step is the whole trick."
+}
+
+### C2. List comments — expect 200 { data: { comments: [...] } } including C1's
+GET {{baseUrl}}/api/recipes/{{recipeId}}/comments
+
+### C3. Empty body — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/recipes/{{recipeId}}/comments
+Content-Type: application/json
+
+{
+  "body": "   "
+}
+
+### C4. Wrong field name (`text` instead of `body`) — expect 400 VALIDATION_ERROR.
+###     Guards the CLAUDE.md §11 regression.
+POST {{baseUrl}}/api/recipes/{{recipeId}}/comments
+Content-Type: application/json
+
+{
+  "text": "this should be rejected"
+}
+
+### C5. Comment on a nonexistent recipe — expect 404 NOT_FOUND
+POST {{baseUrl}}/api/recipes/000000000000000000000000/comments
+Content-Type: application/json
+
+{
+  "body": "no such recipe"
+}
+
+### C6. Delete OWN comment — expect 204 No Content
+DELETE {{baseUrl}}/api/comments/{{commentId}}
+
+### C7. Ownership check — 403, NOT 401.
+###     Steps: as user A, run C1 and copy the new comment _id into @commentId.
+###     Then log in as user B (Auth block, different account) and run this.
+###     Expect 403 FORBIDDEN — user B is authenticated, just not the author.
+DELETE {{baseUrl}}/api/comments/{{commentId}}
+
+### C8. Delete with no session at all — expect 401 UNAUTHENTICATED.
+###     Run Logout first. 401 vs 403 must not be conflated.
+DELETE {{baseUrl}}/api/comments/{{commentId}}
+
+### Ratings ###################################################################
+
+### R1. Rate 4 — expect 200 { data: { rating } } with value 4.
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 4
+}
+
+### R2. Confirm the write landed — expect averageRating 4, ratingCount 1
+GET {{baseUrl}}/api/recipes?search=
+
+### R3. IDEMPOTENCY — same user re-rates 2. Expect 200, and the rating REPLACED.
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 2
+}
+
+### R4. Verify replace-not-append — expect ratingCount STILL 1, averageRating 2.
+###     If ratingCount is 2 here, the upsert is appending and the test has failed.
+GET {{baseUrl}}/api/recipes
+
+### R5. TWO-USER AVERAGE — log in as user B, then rate the same recipe 5.
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 5
+}
+
+### R6. Hand-computed check — user A left 2, user B left 5.
+###     Expect ratingCount 2 and averageRating (2 + 5) / 2 = 3.5
+GET {{baseUrl}}/api/recipes
+
+### R7. Out-of-range low — expect 400 VALIDATION_ERROR
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 0
+}
+
+### R8. Out-of-range high — expect 400 VALIDATION_ERROR
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 6
+}
+
+### R9. Non-integer — expect 400 VALIDATION_ERROR
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 3.5
+}
+
+### R10. Rating a nonexistent recipe — expect 404 NOT_FOUND
+PUT {{baseUrl}}/api/recipes/000000000000000000000000/rating
+Content-Type: application/json
+
+{
+  "value": 3
+}
+
+### Role gate #################################################################
+
+### G1. Run Logout first, then each of these must return 401 UNAUTHENTICATED.
+GET {{baseUrl}}/api/recipes?search=pasta
+
+### G2. Comments list with no session — expect 401
+GET {{baseUrl}}/api/recipes/{{recipeId}}/comments
+
+### G3. Rating with no session — expect 401
+PUT {{baseUrl}}/api/recipes/{{recipeId}}/rating
+Content-Type: application/json
+
+{
+  "value": 3
+}
