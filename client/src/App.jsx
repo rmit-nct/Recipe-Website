@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import CreateRecipePage from './pages/CreateRecipePage';
 import EditRecipePage from './pages/EditRecipePage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
+import LogoutButton from './features/auth/LogoutButton.jsx';
 import logo from './assets/logo.png';
 
 const navLinkClass = ({ isActive }) =>
@@ -39,6 +40,8 @@ export default function App() {
                 Recipes
               </NavLink>
             </div>
+
+            <LogoutButton />
           </nav>
         </header>
 

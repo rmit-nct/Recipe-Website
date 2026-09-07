@@ -49,9 +49,17 @@ export default function Recipes() {
       <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-navy md:text-4xl">
         Recipes worth cooking tonight
       </h1>
-      <p className="mt-3 max-w-xl leading-relaxed text-navy/70">
-        A few fast, friendly dishes to get you started.
-      </p>
+      <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <p className="max-w-xl leading-relaxed text-navy/70">
+          A few fast, friendly dishes to get you started.
+        </p>
+        <Link
+          to="/recipes/new"
+          className="inline-flex shrink-0 items-center justify-center rounded-full bg-navy px-5 py-2.5 font-mono text-xs uppercase tracking-[0.08em] text-cream-base transition hover:bg-navy/90"
+        >
+          + Create recipe
+        </Link>
+      </div>
 
       <RecipeFilters
         search={search}
@@ -87,7 +95,13 @@ export default function Recipes() {
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <RecipeCard key={recipe._id} recipe={recipe} />
+            <Link
+              key={recipe._id}
+              to={`/recipes/${recipe._id}`}
+              className="block rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <RecipeCard recipe={recipe} />
+            </Link>
           ))}
         </div>
       )}
