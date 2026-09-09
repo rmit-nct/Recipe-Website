@@ -86,9 +86,10 @@ export function getRecipeById(id) {
 
 /**
  * POST /api/recipes — session required. Multipart: recipe fields + an
- * `image` file (docs/API_CONTRACT.md). The server sets `imageUrl` from the
- * Cloudinary upload itself — it is never sent by the client here, and
- * would be ignored if it were (§ File Uploads).
+ * optional `image` file (docs/API_CONTRACT.md). The server sets `imageUrl`
+ * from the Cloudinary upload itself when a file is attached — it is never
+ * sent by the client here, and would be ignored if it were (§ File
+ * Uploads). With no file, the created recipe's `imageUrl` comes back `null`.
  *
  * `ingredients` and `steps` are JSON-encoded into single string fields —
  * multipart form data carries flat strings only, so bracket/indexed keys
@@ -103,7 +104,7 @@ export function getRecipeById(id) {
  *   servings: number,
  *   ingredients: Array<{name: string, quantity: string}>,
  *   steps: string[],
- *   image: File,
+ *   image?: File,
  * }} formValues
  * @returns {Promise<{ recipe: Recipe }>}
  */
@@ -117,7 +118,13 @@ export function createRecipe(formValues) {
   form.append('servings', formValues.servings);
   form.append('ingredients', JSON.stringify(formValues.ingredients));
   form.append('steps', JSON.stringify(formValues.steps));
-  form.append('image', formValues.image);
+
+  // The image is optional on create (docs/API_CONTRACT.md § File Uploads) —
+  // only attach the part when a file was actually picked, so a skipped
+  // photo doesn't send a bogus "image" text field.
+  if (formValues.image instanceof File) {
+    form.append('image', formValues.image);
+  }
 
   // No Content-Type header: the browser sets the multipart boundary itself
   // when the body is a FormData instance.

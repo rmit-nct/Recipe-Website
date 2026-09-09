@@ -81,7 +81,7 @@ export default function RecipeFilters({
           id="recipe-category"
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="rounded-2xl border border-navy/15 bg-cream-base px-3 py-2.5 font-mono text-xs uppercase tracking-[0.06em] text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40"
+          className="rounded-2xl border border-navy/40 bg-cream-base px-3 py-2.5 font-mono text-xs uppercase tracking-[0.06em] text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40"
         >
           {CATEGORY_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -97,7 +97,7 @@ export default function RecipeFilters({
           id="recipe-sort"
           value={sort === 'top' ? 'top' : 'new'}
           onChange={(e) => onSortChange(e.target.value)}
-          className="rounded-2xl border border-navy/15 bg-cream-base px-3 py-2.5 font-mono text-xs uppercase tracking-[0.06em] text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40"
+          className="rounded-2xl border border-navy/40 bg-cream-base px-3 py-2.5 font-mono text-xs uppercase tracking-[0.06em] text-navy focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40"
         >
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>

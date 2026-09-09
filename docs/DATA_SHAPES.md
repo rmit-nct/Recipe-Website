@@ -38,7 +38,7 @@ There is no TypeScript in this project. These shapes are documented by conventio
  * @property {string} title
  * @property {string} description
  * @property {'food'|'bakery'} category
- * @property {string} imageUrl
+ * @property {string | null} imageUrl
  * @property {number} prepTimeMinutes
  * @property {number} servings
  * @property {Ingredient[]} ingredients
@@ -52,6 +52,12 @@ There is no TypeScript in this project. These shapes are documented by conventio
 ```
 
 > `averageRating` is denormalized onto `Recipe` rather than computed on every read. Reads outnumber writes roughly 100:1, so storing it trades slightly harder writes (recompute on rating change) for much cheaper reads (no aggregation on every list/detail request).
+>
+> `imageUrl` is optional — `POST /api/recipes` accepts a request with no `image` file
+> attached, in which case this is stored and returned as `null` rather than omitted, so
+> every `Recipe` response consistently carries the key regardless of whether a photo
+> exists. `PUT /api/recipes/:id` can still set or replace it with a real URL (see
+> `docs/API_CONTRACT.md` § File Uploads).
 
 ### Comment
 

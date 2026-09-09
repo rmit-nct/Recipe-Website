@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -25,12 +25,12 @@ export default function App() {
       <AuthProvider>
         <header className="bg-navy">
           <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4">
-            <span className="flex items-center gap-2.5 text-cream-base">
+            <Link to="/" className="flex items-center gap-2.5 text-cream-base transition hover:opacity-90">
               <img src={logo} alt="" className="h-9 w-9 object-contain" />
               <span className="font-display text-lg font-semibold text-cream-base">
                 Neo Recipe
               </span>
-            </span>
+            </Link>
 
             <div className="flex items-center gap-1">
               <NavLink to="/" className={navLinkClass} end>

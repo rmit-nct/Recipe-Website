@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
  * @property {string} title
  * @property {string} description
  * @property {'food'|'bakery'} category
- * @property {string} imageUrl
+ * @property {string | null} imageUrl  // null when the recipe was created with no photo
  * @property {number} prepTimeMinutes
  * @property {number} servings
  * @property {Ingredient[]} ingredients
@@ -37,7 +37,10 @@ const recipeSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
     category: { type: String, required: true, enum: ['food', 'bakery'] },
-    imageUrl: { type: String, required: true, trim: true },
+    // Optional — a recipe may be created with no photo (docs/API_CONTRACT.md
+    // § File Uploads). Defaults to null rather than staying undefined, so
+    // every recipe response consistently carries the key.
+    imageUrl: { type: String, required: false, trim: true, default: null },
     prepTimeMinutes: { type: Number, required: true, min: 0 },
     servings: { type: Number, required: true, min: 1 },
     ingredients: { type: [ingredientSchema], default: [] },

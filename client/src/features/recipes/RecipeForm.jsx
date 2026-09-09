@@ -6,6 +6,10 @@ const CATEGORIES = ['food', 'bakery'];
 
 const inputClass =
   'rounded-xl border border-navy/15 bg-cream-base px-4 py-2.5 text-navy placeholder:text-navy/40 focus:border-steel-blue focus:outline-none focus:ring-2 focus:ring-steel-blue/30';
+// The category <select> gets a stronger border than plain inputs — a
+// dropdown box needs a visible outline to read as a distinct control
+// (docs/DESIGN_SYSTEM.md: navy at a documented, stronger opacity/tint).
+const selectClass = inputClass.replace('border-navy/15', 'border-navy/40');
 const labelClass = 'font-mono text-xs uppercase tracking-[0.08em] text-navy/70';
 const fieldErrorClass = 'text-sm text-burnt-orange';
 
@@ -17,11 +21,12 @@ const fieldErrorClass = 'text-sm text-burnt-orange';
 
 /**
  * Create/edit form for a recipe. In create mode it calls createRecipe (via
- * useRecipeSubmit) with an image File attached — the backend requires the
- * file directly on POST /api/recipes (docs/API_CONTRACT.md § File Uploads).
- * In edit mode it calls updateRecipe; a new image is only uploaded (and
- * imageUrl only sent) if the user actually picks a new file — otherwise the
- * existing image is left untouched, handled inside useRecipeSubmit.
+ * useRecipeSubmit) with an image File attached if one was picked — the
+ * photo is optional on POST /api/recipes (docs/API_CONTRACT.md § File
+ * Uploads); skipping it stores `imageUrl` as `null`. In edit mode it calls
+ * updateRecipe; a new image is only uploaded (and imageUrl only sent) if
+ * the user actually picks a new file — otherwise the existing image (or
+ * lack of one) is left untouched, handled inside useRecipeSubmit.
  *
  * @param {{ recipe?: import('../../api/recipes.js').Recipe }} props
  */
@@ -102,10 +107,6 @@ export default function RecipeForm({ recipe }) {
       errors.servings = 'Servings is required.';
     } else if (Number.isNaN(Number(servings)) || Number(servings) < 1) {
       errors.servings = 'Servings must be at least 1.';
-    }
-
-    if (!isEditing && !image) {
-      errors.image = 'An image is required.';
     }
 
     const incompleteIngredient = ingredients.some(
@@ -235,7 +236,7 @@ export default function RecipeForm({ recipe }) {
             id="recipe-category"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
-            className={inputClass}
+            className={selectClass}
           >
             {CATEGORIES.map((option) => (
               <option key={option} value={option}>

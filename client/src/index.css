@@ -38,3 +38,24 @@ body {
 #root {
   min-height: 100svh;
 }
+
+/* Rounds the OPEN dropdown popup on every <select> (category/sort filters,
+   the recipe form's category select) to match the soft-rounded shape
+   language in docs/DESIGN_SYSTEM.md. Tailwind has no utility for a
+   select's native popup — the closed box already gets rounded-2xl via
+   Tailwind classes on the elements themselves — so this is the one
+   hand-written CSS exception the project's styling rule allows for a
+   genuine gap. `appearance: base-select` is progressive enhancement: on a
+   browser without it yet, this line is simply ignored and the select keeps
+   its normal native (square) popup — nothing breaks, it just isn't rounded
+   there. */
+select {
+  appearance: base-select;
+}
+
+select::picker(select) {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-navy) 40%, transparent);
+  background: var(--color-cream-base);
+  overflow: hidden;
+}

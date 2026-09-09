@@ -145,6 +145,42 @@ Content-Type: image/jpeg
 < ./fixtures/sample.jpg
 --NeoRecipeBoundary--
 
+### W6b. CREATE a recipe WITH NO IMAGE — the `image` file is optional on create
+###      (docs/API_CONTRACT.md § File Uploads). Expect 201 { data: { recipe } }
+###      with imageUrl: null. No "image" part is included at all below.
+POST {{baseUrl}}/api/recipes
+Content-Type: multipart/form-data; boundary=NeoRecipeBoundary
+
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="title"
+
+Recipe With No Photo
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="description"
+
+Verifies POST /api/recipes succeeds with no image file attached.
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="category"
+
+food
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="prepTimeMinutes"
+
+5
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="servings"
+
+1
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="ingredients"
+
+[{"name":"Salt","quantity":"1 pinch"}]
+--NeoRecipeBoundary
+Content-Disposition: form-data; name="steps"
+
+["Nothing to see here."]
+--NeoRecipeBoundary--
+
 ### W7. AUTHOR CANNOT BE SPOOFED — same as W6 but with an `author` field in the
 ###     body. Expect 201, and the returned author is still user A, NOT the id
 ###     sent here. Identity comes from the JWT only (CLAUDE.md §9).

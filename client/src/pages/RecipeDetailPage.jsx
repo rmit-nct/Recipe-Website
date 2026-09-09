@@ -78,7 +78,10 @@ export default function RecipeDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:py-14">
-      <div className="relative aspect-video overflow-hidden rounded-3xl bg-gold-light">
+      {/* Smaller and capped-width than the old full-bleed hero on purpose —
+          the photo is a supporting thumbnail, not the page's visual focus —
+          but a bit larger than the initial cut so it doesn't read as tiny. */}
+      <div className="relative h-48 w-full max-w-md overflow-hidden rounded-2xl bg-gold-light sm:h-56 md:h-64">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
@@ -88,9 +91,9 @@ export default function RecipeDetailPage() {
           />
         ) : null}
         <div className="absolute inset-0 -z-10 flex items-center justify-center text-navy">
-          <NeoRibbon className="h-14 w-14 opacity-40" />
+          <NeoRibbon className="h-10 w-10 opacity-40" />
         </div>
-        <span className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1.5 font-mono text-xs uppercase tracking-[0.08em] text-navy">
+        <span className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1.5 font-mono text-xs uppercase tracking-[0.08em] text-navy">
           {recipe.category}
         </span>
       </div>
@@ -153,7 +156,7 @@ export default function RecipeDetailPage() {
                 key={`${ingredient.name}-${index}`}
                 className="flex items-baseline justify-between gap-3 border-b border-navy/10 pb-2 text-sm text-navy/80"
               >
-                <span>{ingredient.name}</span>
+                <span className="font-body">{ingredient.name}</span>
                 <span className="font-mono text-xs text-navy/60">{ingredient.quantity}</span>
               </li>
             ))}
@@ -168,7 +171,7 @@ export default function RecipeDetailPage() {
                 <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-navy font-mono text-[11px] text-cream-base">
                   {index + 1}
                 </span>
-                <p className="text-sm leading-relaxed text-navy/80">{step}</p>
+                <p className="font-body text-sm leading-relaxed text-navy/80">{step}</p>
               </li>
             ))}
           </ol>

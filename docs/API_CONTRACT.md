@@ -50,7 +50,7 @@ Guests get the public landing page and nothing else. Every `GET` or mutation und
 | GET | `/api/auth/me` | Session | — | `{ data: { user } }` |
 | GET | `/api/recipes` | Session | Query: `?search=&category=&sort=top\|new` | `{ data: { recipes: [...] } }` |
 | GET | `/api/recipes/:id` | Session | — | `{ data: { recipe } }` |
-| POST | `/api/recipes` | Session | multipart: recipe fields + `image` file — see § File Uploads | `{ data: { recipe } }` |
+| POST | `/api/recipes` | Session | multipart: recipe fields + optional `image` file — see § File Uploads | `{ data: { recipe } }` |
 | POST | `/api/uploads` | Session | multipart: a single `image` file | `{ data: { url } }` — 201 |
 | PUT | `/api/recipes/:id` | Session, owner only | JSON (not multipart): any subset of recipe fields, incl. `imageUrl` | `{ data: { recipe } }` |
 | DELETE | `/api/recipes/:id` | Session, owner only | — | `204 No Content` |
@@ -79,14 +79,19 @@ credentials come from `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
 `CLOUDINARY_API_SECRET`.
 
 **The multipart file field is named `image`** on both `POST /api/uploads` and
-`POST /api/recipes`. Limits: images only (`image/*`), 5 MB maximum. A rejected upload
-returns `400 VALIDATION_ERROR` in the standard envelope — never a bare Express error page.
+`POST /api/recipes`. It is **required** on `POST /api/uploads` — that endpoint's only job
+is uploading a file — but **optional** on `POST /api/recipes`: a recipe can be created with
+no photo at all, in which case `imageUrl` is stored and returned as `null` (see
+`docs/DATA_SHAPES.md`). When a file is attached, the same limits apply either way: images
+only (`image/*`), 5 MB maximum. A rejected upload (wrong type, too large) returns
+`400 VALIDATION_ERROR` in the standard envelope — never a bare Express error page.
 
 `POST /api/recipes` takes the image file **directly**; it does not expect an `imageUrl`
 produced by a prior `/api/uploads` call. The two are independent entry points, not a
 two-step flow. On create, `imageUrl` is set by the server from the Cloudinary response and
-is **ignored if sent by the client**. `PUT /api/recipes/:id` is JSON and does accept an
-`imageUrl` string, so replacing an image is: `POST /api/uploads` → `PUT` the returned URL.
+is **ignored if sent by the client** — or left `null` if no file was attached at all.
+`PUT /api/recipes/:id` is JSON and does accept an `imageUrl` string, so adding or replacing
+a photo after the fact is: `POST /api/uploads` → `PUT` the returned URL.
 
 ### Encoding array fields over multipart
 

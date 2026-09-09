@@ -1,10 +1,15 @@
 import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext.jsx';
 
 /**
- * Calls POST /api/auth/logout (via AuthContext.logout), clears the local
- * user, and navigates to "/". Renders nothing when logged out.
+ * The one auth slot on the right side of the nav bar. Renders "Log In"
+ * (linking to the existing /login route) when logged out, or "Log out"
+ * when logged in — the same slot swaps content based on `user` rather than
+ * two components occupying two different positions.
+ *
+ * Logout: calls POST /api/auth/logout (via AuthContext.logout), clears the
+ * local user, and navigates to "/".
  *
  * On a public page (e.g. Home) this is the redirect the user actually
  * lands on. On a page under ProtectedRoute, clearing `user` also makes
@@ -25,7 +30,16 @@ export default function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState('');
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Link
+        to="/login"
+        className="ml-auto rounded-full px-4 py-2 font-mono text-xs uppercase tracking-[0.08em] text-cream-base/80 transition hover:bg-cream-base/10 hover:text-cream-base"
+      >
+        Log In
+      </Link>
+    );
+  }
 
   async function handleLogout() {
     setIsLoggingOut(true);

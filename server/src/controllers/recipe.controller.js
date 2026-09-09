@@ -128,26 +128,24 @@ export const getRecipeById = async (req, res) => {
 
 /**
  * POST /api/recipes — session required.
- * Multipart: recipe fields + an `image` file (docs/API_CONTRACT.md).
+ * Multipart: recipe fields + an optional `image` file (docs/API_CONTRACT.md).
  * @returns {{ data: { recipe: Recipe } }}
  */
 export const createRecipe = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        error: { code: 'VALIDATION_ERROR', message: 'An image file is required' },
-      });
+    // The image is optional on create — only touch Cloudinary when the
+    // client actually attached a file. With none, the Recipe schema's own
+    // default (null) applies, per docs/DATA_SHAPES.md.
+    let imageUrl;
+    if (req.file) {
+      imageUrl = await uploadImageBuffer(req.file.buffer);
     }
-
-    // Zod has already run, so we only reach Cloudinary with a valid payload —
-    // no orphaned uploads from requests that were going to 400 anyway.
-    const imageUrl = await uploadImageBuffer(req.file.buffer);
 
     // author comes from the verified JWT, never from the request body — the
     // browser controls req.body and can lie about it (CLAUDE.md §9).
     const recipe = await Recipe.create({
       ...req.validated,
-      imageUrl,
+      ...(imageUrl ? { imageUrl } : {}),
       author: req.user.id,
     });
 
