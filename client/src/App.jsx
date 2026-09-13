@@ -9,6 +9,7 @@ import CreateRecipePage from './pages/CreateRecipePage';
 import EditRecipePage from './pages/EditRecipePage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import LogoutButton from './features/auth/LogoutButton.jsx';
+import Footer from './components/Footer.jsx';
 import logo from './assets/logo.png';
 
 const navLinkClass = ({ isActive }) =>
@@ -58,6 +59,8 @@ export default function App() {
             </Route>
           </Routes>
         </main>
+
+        <Footer />
       </AuthProvider>
     </BrowserRouter>
   );

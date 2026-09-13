@@ -93,10 +93,8 @@ export default function RecipeDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:py-14">
-      {/* Smaller and capped-width than the old full-bleed hero on purpose —
-          the photo is a supporting thumbnail, not the page's visual focus —
-          but a bit larger than the initial cut so it doesn't read as tiny. */}
-      <div className="relative h-48 w-full max-w-md overflow-hidden rounded-2xl bg-gold-light sm:h-56 md:h-64">
+      {/* Full-width hero — the photo is the page's visual focus in this view. */}
+      <div className="relative h-72 w-full overflow-hidden rounded-2xl bg-gold-light sm:h-96 md:h-112">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
@@ -118,8 +116,8 @@ export default function RecipeDetailPage() {
           <h1 className="font-display text-3xl font-semibold leading-tight text-navy md:text-4xl">
             {recipe.title}
           </h1>
-          <p className="mt-2 font-mono text-xs text-navy/60">
-            By {recipe.author?.username ?? 'unknown'}
+          <p className="mt-2 font-mono text-xs uppercase tracking-[0.08em] text-navy/60">
+            By <span className="text-steel-blue">{recipe.author?.username ?? 'unknown'}</span>
           </p>
         </div>
 

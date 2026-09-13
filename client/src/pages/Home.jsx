@@ -1,8 +1,41 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import RecipeCard from '../features/recipes/RecipeCard.jsx';
-import { fakeRecipes } from '../features/recipes/fakeRecipes.js';
+import { getRecipes } from '../api/recipes.js';
 
 export default function Home() {
+  const [pick, setPick] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPick = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { recipes } = await getRecipes();
+        if (cancelled) return;
+        const random = recipes.length
+          ? recipes[Math.floor(Math.random() * recipes.length)]
+          : null;
+        setPick(random);
+      } catch (err) {
+        if (!cancelled) setError(err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchPick();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div>
       {/* Checkerboard hero — the logo's own cream tile pattern, kept behind
@@ -33,7 +66,22 @@ export default function Home() {
           Tonight&apos;s pick
         </h2>
         <div className="mt-6 max-w-sm">
-          <RecipeCard recipe={fakeRecipes[0]} />
+          {isLoading ? (
+            <p className="text-sm text-navy/60">Loading…</p>
+          ) : error ? (
+            <p className="rounded-2xl border border-burnt-orange/25 bg-gold-light px-4 py-3 text-sm text-navy">
+              Couldn&apos;t load a pick: {error.message ?? 'an unexpected error occurred.'}
+            </p>
+          ) : pick ? (
+            <Link
+              to={`/recipes/${pick._id}`}
+              className="block rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <RecipeCard recipe={pick} />
+            </Link>
+          ) : (
+            <p className="text-sm text-navy/60">No recipes yet — add the first one.</p>
+          )}
         </div>
       </section>
     </div>
