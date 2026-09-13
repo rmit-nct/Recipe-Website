@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext.jsx';
+import { showToast } from '../../lib/toastStore.js';
 
 /**
  * The one auth slot on the right side of the nav bar. Renders "Log In"
@@ -47,6 +48,7 @@ export default function LogoutButton() {
 
     try {
       await logout();
+      showToast('Logged out, see you next time!');
       navigate('/');
     } catch (err) {
       setError(err.message || 'Logged out, but the server request failed.');

@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteRecipe, getRecipeById } from '../api/recipes.js';
 import { AuthContext } from '../context/AuthContext.jsx';
 import NeoRibbon from '../components/NeoRibbon.jsx';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import RatingWidget from '../features/ratings/RatingWidget.jsx';
 import CommentThread from '../features/comments/CommentThread.jsx';
+import { showToast } from '../lib/toastStore.js';
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -16,6 +18,7 @@ export default function RecipeDetailPage() {
   const [error, setError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,18 +57,18 @@ export default function RecipeDetailPage() {
     }
   }, [id]);
 
-  async function handleDelete() {
-    if (!window.confirm("Delete this recipe? This can't be undone.")) return;
-
+  async function handleConfirmDelete() {
     setIsDeleting(true);
     setDeleteError('');
 
     try {
       await deleteRecipe(id);
+      showToast('Recipe deleted');
       navigate('/recipes');
     } catch (err) {
       setDeleteError(err.message || 'Could not delete this recipe. Please try again.');
       setIsDeleting(false);
+      setIsConfirmOpen(false);
     }
   }
 
@@ -131,7 +134,7 @@ export default function RecipeDetailPage() {
             </Link>
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setIsConfirmOpen(true)}
               disabled={isDeleting}
               className="inline-flex items-center justify-center rounded-full bg-burnt-orange px-5 py-2.5 font-mono text-xs uppercase tracking-[0.08em] text-cream-base transition hover:bg-burnt-orange/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -194,6 +197,16 @@ export default function RecipeDetailPage() {
       </div>
 
       <CommentThread recipeId={recipe._id} />
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        title="Delete this recipe?"
+        message={`"${recipe.title}" will be permanently removed. This can't be undone.`}
+        confirmLabel="Delete"
+        isConfirming={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
     </div>
   );
 }

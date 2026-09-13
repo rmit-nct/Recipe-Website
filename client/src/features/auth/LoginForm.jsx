@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { showToast } from '../../lib/toastStore.js';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -40,6 +41,7 @@ export default function LoginForm() {
     setIsSubmitting(true);
     try {
       await login({ email: email.trim(), password });
+      showToast('Logged in, welcome back!');
       navigate('/recipes');
     } catch (err) {
       const apiError = /** @type {ApiError} */ (err);

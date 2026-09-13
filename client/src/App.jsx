@@ -10,6 +10,7 @@ import EditRecipePage from './pages/EditRecipePage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import LogoutButton from './features/auth/LogoutButton.jsx';
 import Footer from './components/Footer.jsx';
+import ToastContainer from './components/ToastContainer.jsx';
 import logo from './assets/logo.png';
 
 const navLinkClass = ({ isActive }) =>
@@ -61,6 +62,7 @@ export default function App() {
         </main>
 
         <Footer />
+        <ToastContainer />
       </AuthProvider>
     </BrowserRouter>
   );

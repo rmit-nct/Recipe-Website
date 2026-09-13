@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { showToast } from '../../lib/toastStore.js';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -47,6 +48,7 @@ export default function RegisterForm() {
     setIsSubmitting(true);
     try {
       await register({ username: username.trim(), email: email.trim(), password });
+      showToast('Account created, welcome to Neo Recipe!');
       navigate('/recipes');
     } catch (err) {
       const apiError = /** @type {ApiError} */ (err);

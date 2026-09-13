@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipeSubmit } from './useRecipeSubmit.js';
+import { showToast } from '../../lib/toastStore.js';
 
 const CATEGORIES = ['food', 'bakery'];
 
@@ -163,6 +164,7 @@ export default function RecipeForm({ recipe }) {
         mode: isEditing ? 'update' : 'create',
         id: recipe?._id,
       });
+      showToast(isEditing ? 'Recipe updated!' : 'Recipe created!');
       navigate(`/recipes/${savedRecipe._id}`);
     } catch (err) {
       setFormError(err.message || 'Something went wrong. Please try again.');

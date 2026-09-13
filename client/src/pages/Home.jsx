@@ -3,25 +3,35 @@ import { Link } from 'react-router-dom';
 import RecipeCard from '../features/recipes/RecipeCard.jsx';
 import { getRecipes } from '../api/recipes.js';
 
+const PICK_COUNT = 3;
+
+// Fisher-Yates shuffle, then take the first N — avoids the bias of
+// repeatedly picking a random index (which can return duplicates).
+function pickRandom(items, count) {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
 export default function Home() {
-  const [pick, setPick] = useState(null);
+  const [picks, setPicks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchPick = async () => {
+    const fetchPicks = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
         const { recipes } = await getRecipes();
         if (cancelled) return;
-        const random = recipes.length
-          ? recipes[Math.floor(Math.random() * recipes.length)]
-          : null;
-        setPick(random);
+        setPicks(pickRandom(recipes, PICK_COUNT));
       } catch (err) {
         if (!cancelled) setError(err);
       } finally {
@@ -29,7 +39,7 @@ export default function Home() {
       }
     };
 
-    fetchPick();
+    fetchPicks();
 
     return () => {
       cancelled = true;
@@ -65,20 +75,25 @@ export default function Home() {
         <h2 className="font-display text-2xl font-semibold text-navy md:text-3xl">
           Tonight&apos;s pick
         </h2>
-        <div className="mt-6 max-w-sm">
+        <div className="mt-6">
           {isLoading ? (
             <p className="text-sm text-navy/60">Loading…</p>
           ) : error ? (
-            <p className="rounded-2xl border border-burnt-orange/25 bg-gold-light px-4 py-3 text-sm text-navy">
+            <p className="max-w-sm rounded-2xl border border-burnt-orange/25 bg-gold-light px-4 py-3 text-sm text-navy">
               Couldn&apos;t load a pick: {error.message ?? 'an unexpected error occurred.'}
             </p>
-          ) : pick ? (
-            <Link
-              to={`/recipes/${pick._id}`}
-              className="block rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              <RecipeCard recipe={pick} />
-            </Link>
+          ) : picks.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {picks.map((recipe) => (
+                <Link
+                  key={recipe._id}
+                  to={`/recipes/${recipe._id}`}
+                  className="block rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <RecipeCard recipe={recipe} />
+                </Link>
+              ))}
+            </div>
           ) : (
             <p className="text-sm text-navy/60">No recipes yet — add the first one.</p>
           )}
