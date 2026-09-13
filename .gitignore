@@ -9,3 +9,4 @@ dist/
 .remember/
 CLAUDE.local.md
 CLAUDE.md
+.playwright-mcp/
