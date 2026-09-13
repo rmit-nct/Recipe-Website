@@ -1,0 +1,48 @@
+- generic [ref=f3e2]:
+  - banner [ref=f3e3]:
+    - navigation [ref=f3e4]:
+      - link "Neo Recipe" [ref=f3e5] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f3e7]:
+        - link "Home" [ref=f3e8] [cursor=pointer]:
+          - /url: /
+        - link "Recipes" [ref=f3e9] [cursor=pointer]:
+          - /url: /recipes
+      - button "Log out" [ref=f3e80]
+  - main [ref=f3e11]:
+    - generic [ref=f3e81]:
+      - paragraph [ref=f3e82]: Fresh from the kitchen
+      - heading "Recipes worth cooking tonight" [level=1] [ref=f3e83]
+      - generic [ref=f3e84]:
+        - paragraph [ref=f3e85]: A few fast, friendly dishes to get you started.
+        - link "+ Create recipe" [ref=f3e86] [cursor=pointer]:
+          - /url: /recipes/new
+      - generic [ref=f3e87]:
+        - generic [ref=f3e88]:
+          - generic [ref=f3e89]: Search recipes by title or ingredient
+          - searchbox "Search recipes by title or ingredient" [ref=f3e90]
+          - button "Search" [ref=f3e91]
+        - generic [ref=f3e92]:
+          - generic [ref=f3e93]: Filter by category
+          - combobox "Filter by category" [ref=f3e94]:
+            - option "All categories" [selected]
+            - option "Food"
+            - option "Bakery"
+          - generic [ref=f3e95]: Sort recipes
+          - combobox "Sort recipes" [ref=f3e96]:
+            - option "Newest" [selected]
+            - option "Top rated"
+      - link [ref=f3e98] [cursor=pointer]:
+        - /url: /recipes/6aa183953af5a6cb895a93c2
+        - article [ref=f3e99]:
+          - generic [ref=f3e100]:
+            - img "dsa" [ref=f3e101]
+            - generic [ref=f3e107]: food
+          - generic [ref=f3e108]:
+            - heading "dsa" [level=3] [ref=f3e109]
+            - paragraph [ref=f3e110]: dsa
+            - generic [ref=f3e111]:
+              - generic [ref=f3e112]: 32 min · serves 5
+              - generic [ref=f3e113]:
+                - text: "0"
+                - generic [ref=f3e115]: (0)

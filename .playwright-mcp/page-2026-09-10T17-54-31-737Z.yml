@@ -1,0 +1,13 @@
+- generic [ref=f5e2]:
+  - banner [ref=f5e3]:
+    - navigation [ref=f5e4]:
+      - link "Neo Recipe" [ref=f5e5] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f5e7]:
+        - link "Home" [ref=f5e8] [cursor=pointer]:
+          - /url: /
+        - link "Recipes" [ref=f5e9] [cursor=pointer]:
+          - /url: /recipes
+      - button "Log out" [ref=f5e11]
+  - main [ref=f5e12]:
+    - paragraph [ref=f5e14]: "Couldn't load this recipe: Recipe not found"

@@ -1,8 +1,10 @@
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteRecipe, getRecipeById } from '../api/recipes.js';
 import { AuthContext } from '../context/AuthContext.jsx';
 import NeoRibbon from '../components/NeoRibbon.jsx';
+import RatingWidget from '../features/ratings/RatingWidget.jsx';
+import CommentThread from '../features/comments/CommentThread.jsx';
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -37,6 +39,19 @@ export default function RecipeDetailPage() {
     return () => {
       cancelled = true;
     };
+  }, [id]);
+
+  // PUT /api/recipes/:id/rating returns only the caller's rating, not the
+  // recipe's updated averageRating/ratingCount (docs/API_CONTRACT.md) — so
+  // after a successful submission, re-fetch the recipe to pick those up.
+  const handleRated = useCallback(async () => {
+    try {
+      const { recipe: refreshed } = await getRecipeById(id);
+      setRecipe(refreshed);
+    } catch {
+      // The rating submission itself already succeeded and reported any
+      // error — a failed refresh here just leaves the displayed totals stale.
+    }
   }, [id]);
 
   async function handleDelete() {
@@ -140,12 +155,14 @@ export default function RecipeDetailPage() {
         <span className="rounded-full bg-cream-alt px-3 py-1.5 font-mono text-[11px] text-navy">
           {recipe.prepTimeMinutes} min · serves {recipe.servings}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-light px-3 py-1.5 font-mono text-[11px] text-navy">
-          <span className="h-1.5 w-1.5 rounded-full bg-burnt-orange" />
-          {recipe.averageRating}
-          <span className="text-navy/55">({recipe.ratingCount})</span>
-        </span>
       </div>
+
+      <RatingWidget
+        recipeId={recipe._id}
+        averageRating={recipe.averageRating}
+        ratingCount={recipe.ratingCount}
+        onRated={handleRated}
+      />
 
       <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_2fr]">
         <section>
@@ -177,6 +194,8 @@ export default function RecipeDetailPage() {
           </ol>
         </section>
       </div>
+
+      <CommentThread recipeId={recipe._id} />
     </div>
   );
 }

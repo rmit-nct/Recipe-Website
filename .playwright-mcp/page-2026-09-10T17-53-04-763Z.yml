@@ -1,0 +1,67 @@
+- generic [ref=f3e2]:
+  - banner [ref=f3e3]:
+    - navigation [ref=f3e4]:
+      - link "Neo Recipe" [ref=f3e5] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f3e7]:
+        - link "Home" [ref=f3e8] [cursor=pointer]:
+          - /url: /
+        - link "Recipes" [ref=f3e9] [cursor=pointer]:
+          - /url: /recipes
+      - button "Log out" [ref=f3e11]
+  - main [ref=f3e12]:
+    - generic [ref=f3e13]:
+      - generic [ref=f3e14]: food
+      - generic [ref=f3e21]:
+        - generic [ref=f3e22]:
+          - heading "Mock Pasta" [level=1] [ref=f3e23]
+          - paragraph [ref=f3e24]: By commentTesterA
+        - generic [ref=f3e25]:
+          - link "Edit" [ref=f3e26] [cursor=pointer]:
+            - /url: /recipes/r1/edit
+          - button "Delete" [ref=f3e27]
+      - paragraph [ref=f3e28]: A mocked recipe for UI verification.
+      - generic [ref=f3e29]: 20 min · serves 2
+      - generic [ref=f3e31]:
+        - generic [ref=f3e32]:
+          - text: "2"
+          - generic [ref=f3e34]: (3)
+        - generic [ref=f3e35]:
+          - radiogroup "Rate this recipe" [ref=f3e36]:
+            - radio "Rate 1 star" [ref=f3e37]: ★
+            - radio "Rate 2 stars" [checked] [ref=f3e38]: ★
+            - radio "Rate 3 stars" [ref=f3e39]: ★
+            - radio "Rate 4 stars" [ref=f3e40]: ★
+            - radio "Rate 5 stars" [ref=f3e41]: ★
+          - generic [ref=f3e42]: "Your rating: 2"
+      - generic [ref=f3e43]:
+        - generic [ref=f3e44]:
+          - heading "Ingredients" [level=2] [ref=f3e45]
+          - list [ref=f3e46]:
+            - listitem [ref=f3e47]:
+              - generic [ref=f3e48]: Pasta
+              - generic [ref=f3e49]: 200 g
+        - generic [ref=f3e50]:
+          - heading "Steps" [level=2] [ref=f3e51]
+          - list [ref=f3e52]:
+            - listitem [ref=f3e53]:
+              - generic [ref=f3e54]: "1"
+              - paragraph [ref=f3e55]: Boil pasta.
+      - generic [ref=f3e56]:
+        - heading "Comments" [level=2] [ref=f3e57]
+        - generic [ref=f3e58]:
+          - generic [ref=f3e59]: Add a comment
+          - textbox "Add a comment" [ref=f3e60]:
+            - /placeholder: Share your thoughts on this recipe…
+          - button "Post" [disabled] [ref=f3e61]
+        - list [ref=f3e62]:
+          - listitem [ref=f3e63]:
+            - generic [ref=f3e64]:
+              - generic [ref=f3e65]:
+                - paragraph [ref=f3e66]: commentTesterA · 9/11/2026, 12:51:44 AM
+                - paragraph [ref=f3e67]: My own comment
+              - button "Delete" [ref=f3e68]
+          - listitem [ref=f3e69]:
+            - generic [ref=f3e71]:
+              - paragraph [ref=f3e72]: someoneElse · 9/11/2026, 12:51:44 AM
+              - paragraph [ref=f3e73]: Someone else's comment
