@@ -95,7 +95,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-navy/60">No recipes yet — add the first one.</p>
+            <p className="text-sm text-navy/60">No recipes yet, add the first one.</p>
           )}
         </div>
       </section>
