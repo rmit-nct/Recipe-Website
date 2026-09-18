@@ -21,7 +21,7 @@ See [`client/package.json`](client/package.json) and [`server/package.json`](ser
 
 
 ## Demo Video
-
+https://github.com/user-attachments/assets/eb8f8e8d-d0f9-4a67-a965-7fb43fe3aa28
 *Full recipe lifecycle: create with an uploaded image → view detail → edit → delete, all enforced server-side by ownership checks.*
 
 ## Setup
