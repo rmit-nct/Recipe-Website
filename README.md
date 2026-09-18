@@ -1,6 +1,6 @@
 # Neo Recipe
 
-A recipe-sharing web app where authenticated users can create, browse, search, rate, and comment on recipes. Guests only see the public landing page — every other read or write requires a signed-in session. Built as a full-stack monorepo: a React SPA talking to an Express + MongoDB API over a JWT httpOnly-cookie session, with recipe images stored on Cloudinary.
+A recipe-sharing web app where authenticated users can create, browse, search, rate, and comment on recipes. Guests only see the public landing page - every other read or write requires a signed-in session. Built as a full-stack monorepo: a React SPA talking to an Express + MongoDB API over a JWT httpOnly-cookie session, with recipe images stored on Cloudinary.
 
 ## Tech Stack
 
@@ -21,7 +21,11 @@ See [`client/package.json`](client/package.json) and [`server/package.json`](ser
 
 
 ## Demo Video
-https://github.com/user-attachments/assets/eb8f8e8d-d0f9-4a67-a965-7fb43fe3aa28
+
+<video src="https://github.com/user-attachments/assets/eb8f8e8d-d0f9-4a67-a965-7fb43fe3aa28.mp4" autoplay loop muted playsinline controls width="100%">
+</video>
+
+
 *Full recipe lifecycle: create with an uploaded image → view detail → edit → delete, all enforced server-side by ownership checks.*
 
 ## Setup
@@ -47,7 +51,7 @@ Fill in `server/.env` (see [`server/.env.example`](server/.env.example) for the 
 |---|---|
 | `PORT` | Port the API listens on |
 | `MONGODB_URI` | Your MongoDB Atlas connection string |
-| `JWT_SECRET` | Required — the server refuses to start if this is missing or empty. Use a long random string. |
+| `JWT_SECRET` | Required - the server refuses to start if this is missing or empty. Use a long random string. |
 | `CLIENT_ORIGIN` | URL of the running frontend, for CORS (`http://localhost:5173` in dev) |
 | `NODE_ENV` | `development` or `production` |
 | `CLOUDINARY_CLOUD_NAME` | From your Cloudinary dashboard |
@@ -70,7 +74,7 @@ npm install
 cp .env.example .env
 ```
 
-`client/.env.example` currently declares no variables — the client has no required env config yet.
+`client/.env.example` currently declares no variables - the client has no required env config yet.
 
 Run the client:
 
@@ -85,13 +89,13 @@ With both processes running, the client dev server talks to the API at the origi
 
 ## Testing the API
 
-There is no automated test runner configured in either package yet. To exercise the API directly, use [`docs/requests.http`](docs/requests.http) — a set of `.http` requests you can run with an editor's REST client extension (e.g. the VS Code "REST Client" extension) against your locally running server. This is the project's standard for manual API testing; no Postman collection is maintained.
+There is no automated test runner configured in either package yet. To exercise the API directly, use [`docs/requests.http`](docs/requests.http) - a set of `.http` requests you can run with an editor's REST client extension (e.g. the VS Code "REST Client" extension) against your locally running server. This is the project's standard for manual API testing; no Postman collection is maintained.
 
 ## API & Data Reference
 
-- [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) — every endpoint: method, path, auth requirement, request body, response envelope, and status codes.
-- [`docs/DATA_SHAPES.md`](docs/DATA_SHAPES.md) — the `User`, `Ingredient`, `Recipe`, and `Comment` object shapes.
-- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — color tokens, typography, and shape language.
+- [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) - every endpoint: method, path, auth requirement, request body, response envelope, and status codes.
+- [`docs/DATA_SHAPES.md`](docs/DATA_SHAPES.md) - the `User`, `Ingredient`, `Recipe`, and `Comment` object shapes.
+- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) - color tokens, typography, and shape language.
 
 All responses use a shared envelope: `{ data: ... }` on success, `{ error: { code, message } }` on failure.
 
@@ -99,7 +103,7 @@ All responses use a shared envelope: `{ data: ... }` on success, `{ error: { cod
 
 **Must-have (built and verified):**
 
-- Register / login with role-gated access — guests see only the landing page; every recipe, comment, and rating route requires an authenticated session
+- Register / login with role-gated access - guests see only the landing page; every recipe, comment, and rating route requires an authenticated session
 - Recipe CRUD with image upload (Cloudinary), restricted to the recipe's owner for edit/delete
 - Comments on recipes
 - 1–5 star ratings, with a "Top Rated" feed
