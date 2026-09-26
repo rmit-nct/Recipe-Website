@@ -87,6 +87,26 @@ npm run lint      # oxlint
 
 With both processes running, the client dev server talks to the API at the origin configured in the client's fetch wrappers (`client/src/api/`), and the server allows that origin via `CLIENT_ORIGIN`.
 
+### 4. Seed sample data (optional)
+
+A fresh database starts empty, so every page shows an empty state. To populate it with mock users, recipes across both categories, comments and ratings:
+
+```bash
+cd server
+npm run seed              # seeds an empty database
+npm run seed -- --force   # deletes all users/recipes/comments/ratings first, then reseeds
+```
+
+The script ([`server/src/scripts/seed.js`](server/src/scripts/seed.js)) connects with the same `MONGODB_URI` as the app. It is not additive: if the database already holds any users, recipes, comments or ratings it warns and exits rather than duplicating data - pass `--force` to wipe those four collections and reseed.
+
+Every seeded user shares one password, so you can log in immediately:
+
+| Email | Password |
+|---|---|
+| `mina@neorecipe.test` (or `dan@`, `priya@`, `tomas@`, `aisha@neorecipe.test`) | `NeoRecipe123!` |
+
+Recipe photos are stable [picsum.photos](https://picsum.photos) placeholder URLs - real, resolvable images rather than food-specific ones.
+
 ## Testing the API
 
 There is no automated test runner configured in either package yet. To exercise the API directly, use [`docs/requests.http`](docs/requests.http) - a set of `.http` requests you can run with an editor's REST client extension (e.g. the VS Code "REST Client" extension) against your locally running server. This is the project's standard for manual API testing; no Postman collection is maintained.

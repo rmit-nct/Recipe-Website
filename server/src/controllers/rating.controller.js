@@ -5,7 +5,7 @@ import Recipe from '../models/Recipe.js';
 // Recomputes the recipe's denormalized rating fields from the Rating collection
 // and persists them. Called on every rating write, never on read — the
 // reads-cheap/writes-slightly-harder trade-off in handbook §5.3.
-const syncRecipeRating = async (recipeId) => {
+export const syncRecipeRating = async (recipeId) => {
   const [stats] = await Rating.aggregate([
     { $match: { recipeId: new mongoose.Types.ObjectId(recipeId) } },
     { $group: { _id: null, averageRating: { $avg: '$value' }, ratingCount: { $sum: 1 } } },
